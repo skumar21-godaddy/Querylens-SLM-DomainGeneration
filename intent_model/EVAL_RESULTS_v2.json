@@ -1,0 +1,1622 @@
+{
+  "model": "model_v2_span/model-best",
+  "gold_queries_total": 74,
+  "gold_queries_unseen_evaluated": 71,
+  "per_label": {
+    "CONCEPT": {
+      "P": 0.825,
+      "R": 0.825,
+      "F1": 0.825,
+      "n": 63
+    },
+    "GIVEN_NAME": {
+      "P": 0.917,
+      "R": 1.0,
+      "F1": 0.957,
+      "n": 11
+    },
+    "STYLE": {
+      "P": 0.917,
+      "R": 0.786,
+      "F1": 0.846,
+      "n": 14
+    },
+    "REQUIRE_TOKEN": {
+      "P": 0.929,
+      "R": 0.722,
+      "F1": 0.813,
+      "n": 18
+    },
+    "EXCLUDE_TOKEN": {
+      "P": 0.909,
+      "R": 0.417,
+      "F1": 0.571,
+      "n": 24
+    },
+    "QUALIFIER": {
+      "P": 0.895,
+      "R": 0.708,
+      "F1": 0.791,
+      "n": 24
+    }
+  },
+  "macro_span_f1": 0.8,
+  "intent_secondary_acc": 0.915,
+  "per_query": [
+    {
+      "text": "nootropic supplement for kids and teens",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "nootropic supplement"
+          ],
+          "pred": [
+            "nootropic supplement"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "kids",
+            "teens"
+          ],
+          "pred": [
+            "kids and teens"
+          ]
+        }
+      }
+    },
+    {
+      "text": "flower shop in canada",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "flower shop"
+          ],
+          "pred": [
+            "flower shop"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "canada"
+          ],
+          "pred": [
+            "canada"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a coworking space for freelance designers in austin",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "coworking space"
+          ],
+          "pred": [
+            "coworking space"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "austin",
+            "freelance designers"
+          ],
+          "pred": [
+            "austin"
+          ]
+        }
+      }
+    },
+    {
+      "text": "meal prep delivery targeting busy nurses",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "meal prep delivery"
+          ],
+          "pred": [
+            "meal prep delivery"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "busy nurses"
+          ],
+          "pred": [
+            "busy nurses"
+          ]
+        }
+      }
+    },
+    {
+      "text": "tutoring service for high school students",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "tutoring service"
+          ],
+          "pred": [
+            "tutoring service"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "high school students"
+          ],
+          "pred": [
+            "high school students"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a bakery serving gluten free customers",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "bakery"
+          ],
+          "pred": [
+            "bakery"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "gluten free customers"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "pet grooming van for elderly pet owners",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "pet grooming van"
+          ],
+          "pred": [
+            "pet grooming van"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "elderly pet owners"
+          ],
+          "pred": [
+            "elderly pet owners"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a name that must include the word cloud",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "cloud"
+          ],
+          "pred": [
+            "cloud"
+          ]
+        }
+      }
+    },
+    {
+      "text": "domain with the word fresh in it for a juice bar",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "juice bar"
+          ],
+          "pred": [
+            "juice bar"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "fresh"
+          ],
+          "pred": [
+            "fresh"
+          ]
+        }
+      }
+    },
+    {
+      "text": "i want the word summit in my consulting firm name",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "consulting firm"
+          ],
+          "pred": [
+            "consulting firm"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "summit"
+          ],
+          "pred": [
+            "summit"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a domain for a coffee brand that must contain roast",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "coffee brand"
+          ],
+          "pred": [
+            "coffee"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "roast"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "suggest a domain for data engineering but shall not contain ai",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "data engineering"
+          ],
+          "pred": [
+            "data engineering"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "ai"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a name for my bakery without the word bread",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "bakery"
+          ],
+          "pred": [
+            "bakery"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "bread"
+          ],
+          "pred": [
+            "bread"
+          ]
+        }
+      }
+    },
+    {
+      "text": "watchmaking brand avoiding watch time or chrono",
+      "intent_gold": "creative",
+      "intent_pred": "ambiguous",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "watchmaking brand"
+          ],
+          "pred": []
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "chrono",
+            "time",
+            "watch"
+          ],
+          "pred": [
+            "chrono",
+            "time"
+          ]
+        }
+      }
+    },
+    {
+      "text": "fitness app but no numbers and dont use the word gym",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "fitness app"
+          ],
+          "pred": [
+            "fitness app"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "gym"
+          ],
+          "pred": [
+            "gym"
+          ]
+        }
+      }
+    },
+    {
+      "text": "the name of the organization shall be Dignity Moves Foundation",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "dignity moves foundation"
+          ],
+          "pred": [
+            "dignity moves foundation"
+          ]
+        }
+      }
+    },
+    {
+      "text": "my company is called Blue Orchid Spa and i need a domain",
+      "intent_gold": "ambiguous",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "blue orchid spa"
+          ],
+          "pred": [
+            "blue orchid spa"
+          ]
+        }
+      }
+    },
+    {
+      "text": "i have a business named Cedar and Sage Apothecary",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "cedar and sage apothecary"
+          ],
+          "pred": [
+            "cedar and sage apothecary"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a website that displays my event photography and videos",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "event photography",
+            "videos"
+          ],
+          "pred": [
+            "event photography",
+            "videos"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a platform that connects tutors with students",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "students",
+            "tutors"
+          ],
+          "pred": [
+            "platform",
+            "tutors with students"
+          ]
+        }
+      }
+    },
+    {
+      "text": "suggest a dominant domain for the gym",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "gym"
+          ],
+          "pred": [
+            "gym"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "dominant"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a fun catchy name for my vegan bakery",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "vegan bakery"
+          ],
+          "pred": [
+            "vegan bakery"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "catchy",
+            "fun"
+          ],
+          "pred": [
+            "catchy",
+            "fun"
+          ]
+        }
+      }
+    },
+    {
+      "text": "invented premium minimalist name for a tech startup",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "tech startup"
+          ],
+          "pred": [
+            "tech startup"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "invented",
+            "minimalist",
+            "premium"
+          ],
+          "pred": [
+            "minimalist",
+            "premium"
+          ]
+        }
+      }
+    },
+    {
+      "text": "Mountains are my dream and I want to inspire the world",
+      "intent_gold": "creative",
+      "intent_pred": "ambiguous",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "mountains"
+          ],
+          "pred": [
+            "mountains"
+          ]
+        }
+      }
+    },
+    {
+      "text": "Drone Services South Carolina",
+      "intent_gold": "creative",
+      "intent_pred": "exact",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "drone services"
+          ],
+          "pred": []
+        },
+        "GIVEN_NAME": {
+          "gold": [],
+          "pred": [
+            "drone services south carolina"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "south carolina"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "organic skincare line for sensitive skin sold online",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "organic skincare"
+          ],
+          "pred": [
+            "organic skincare line"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "sensitive skin"
+          ],
+          "pred": [
+            "sensitive skin sold"
+          ]
+        }
+      }
+    },
+    {
+      "text": "real estate agency in miami specializing in luxury condos",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "luxury condos",
+            "real estate agency"
+          ],
+          "pred": [
+            "luxury condos",
+            "real estate agency"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "miami"
+          ],
+          "pred": [
+            "miami"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a mobile car wash serving downtown offices",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "mobile car wash"
+          ],
+          "pred": [
+            "mobile car wash"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "downtown offices"
+          ],
+          "pred": [
+            "downtown offices"
+          ]
+        }
+      }
+    },
+    {
+      "text": "daycare for toddlers with the word bright in the name",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "daycare"
+          ],
+          "pred": [
+            "daycare"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "bright"
+          ],
+          "pred": [
+            "bright"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "toddlers"
+          ],
+          "pred": [
+            "toddlers"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a yoga studio for pregnant women avoiding the word zen",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "yoga studio"
+          ],
+          "pred": [
+            "yoga studio"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [],
+          "pred": [
+            "zen"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "zen"
+          ],
+          "pred": []
+        },
+        "QUALIFIER": {
+          "gold": [
+            "pregnant women"
+          ],
+          "pred": [
+            "pregnant women"
+          ]
+        }
+      }
+    },
+    {
+      "text": "landscaping company for commercial properties in denver",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "landscaping company"
+          ],
+          "pred": [
+            "landscaping company"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "commercial properties",
+            "denver"
+          ],
+          "pred": [
+            "commercial properties",
+            "denver"
+          ]
+        }
+      }
+    },
+    {
+      "text": "handmade candle brand that must include the word ember",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "candle brand"
+          ],
+          "pred": [
+            "handmade candle brand"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "ember"
+          ],
+          "pred": [
+            "ember"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a podcast about personal finance for young professionals",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "personal finance"
+          ],
+          "pred": [
+            "personal finance",
+            "podcast"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "young professionals"
+          ],
+          "pred": [
+            "young professionals"
+          ]
+        }
+      }
+    },
+    {
+      "text": "vegan restaurant plus a cooking school",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "cooking school",
+            "vegan restaurant"
+          ],
+          "pred": [
+            "cooking school",
+            "vegan restaurant"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a saas tool for dentists as well as orthodontists",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "saas tool"
+          ],
+          "pred": [
+            "orthodontists",
+            "saas tool"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "dentists",
+            "orthodontists"
+          ],
+          "pred": [
+            "dentists"
+          ]
+        }
+      }
+    },
+    {
+      "text": "my domain is greenleaf.io and i want similar ideas",
+      "intent_gold": "ambiguous",
+      "intent_pred": "ambiguous",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "greenleaf.io"
+          ],
+          "pred": [
+            "greenleaf.io"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a childrens bookstore without using the word kids",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "childrens bookstore"
+          ],
+          "pred": [
+            "childrens bookstore"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "kids"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a coffee shop name that must include the word bean",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "coffee shop"
+          ],
+          "pred": [
+            "coffee shop"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "bean"
+          ],
+          "pred": [
+            "bean"
+          ]
+        }
+      }
+    },
+    {
+      "text": "landscaping business with the word oak in the name",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "landscaping business"
+          ],
+          "pred": [
+            "landscaping business"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "oak"
+          ],
+          "pred": [
+            "oak"
+          ]
+        }
+      }
+    },
+    {
+      "text": "i want the word peak somewhere in my fitness brand",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "fitness brand"
+          ],
+          "pred": [
+            "fitness brand"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "peak"
+          ],
+          "pred": [
+            "peak"
+          ]
+        }
+      }
+    },
+    {
+      "text": "tech consultancy using the word forge",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "tech consultancy"
+          ],
+          "pred": [
+            "tech consultancy"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "forge"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a bakery domain that contains the word crumb",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "bakery"
+          ],
+          "pred": [
+            "bakery"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "crumb"
+          ],
+          "pred": [
+            "crumb"
+          ]
+        }
+      }
+    },
+    {
+      "text": "pet store name including the word paw please",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "pet store"
+          ],
+          "pred": [
+            "pet store"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "paw"
+          ],
+          "pred": []
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [],
+          "pred": [
+            "paw"
+          ]
+        }
+      }
+    },
+    {
+      "text": "real estate firm that must have the word summit in it",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "real estate firm"
+          ],
+          "pred": [
+            "real estate firm"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "summit"
+          ],
+          "pred": [
+            "summit"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a travel blog with the word wander in the title",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "travel blog"
+          ],
+          "pred": [
+            "travel blog"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "wander"
+          ],
+          "pred": [
+            "wander"
+          ]
+        }
+      }
+    },
+    {
+      "text": "skincare brand that includes glow",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "skincare brand"
+          ],
+          "pred": [
+            "skincare"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "glow"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a law firm name containing the word justice",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "law firm"
+          ],
+          "pred": [
+            "law firm"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "justice"
+          ],
+          "pred": [
+            "justice"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a marketing agency but avoid the word digital",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "marketing agency"
+          ],
+          "pred": [
+            "marketing agency"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "digital"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "gym brand without the word fit",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "gym brand"
+          ],
+          "pred": [
+            "gym"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "fit"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a bakery name that does not contain bread or cake",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "bakery"
+          ],
+          "pred": [
+            "bakery"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "bread",
+            "cake"
+          ],
+          "pred": [
+            "bread"
+          ]
+        }
+      }
+    },
+    {
+      "text": "software startup, please no ai or tech in the name",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "software startup"
+          ],
+          "pred": [
+            "software startup"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "ai",
+            "tech"
+          ],
+          "pred": [
+            "ai",
+            "tech"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a wellness brand avoiding zen and calm",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "wellness brand"
+          ],
+          "pred": [
+            "wellness brand"
+          ]
+        },
+        "STYLE": {
+          "gold": [],
+          "pred": [
+            "calm"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "calm",
+            "zen"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "consulting company but dont use the word solutions",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "consulting company"
+          ],
+          "pred": [
+            "consulting company"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "solutions"
+          ],
+          "pred": [
+            "solutions"
+          ]
+        }
+      }
+    },
+    {
+      "text": "jewelry line excluding the word luxury",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "jewelry line"
+          ],
+          "pred": [
+            "jewelry"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "luxury"
+          ],
+          "pred": [
+            "luxury"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a coffee roaster without using roast or brew",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "coffee roaster"
+          ],
+          "pred": [
+            "coffee roaster"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "brew",
+            "roast"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "childrens clothing brand, no kids or baby words",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "childrens clothing"
+          ],
+          "pred": [
+            "childrens clothing brand"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "baby",
+            "kids"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "a fintech app that should not contain the word bank",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "fintech app"
+          ],
+          "pred": [
+            "fintech app"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "bank"
+          ],
+          "pred": []
+        }
+      }
+    },
+    {
+      "text": "my company is called Ironclad Security Group",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "ironclad security group"
+          ],
+          "pred": [
+            "ironclad security group"
+          ]
+        }
+      }
+    },
+    {
+      "text": "we are named Willow & Birch Interiors, need a domain",
+      "intent_gold": "ambiguous",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "willow & birch interiors"
+          ],
+          "pred": [
+            "willow & birch interiors"
+          ]
+        }
+      }
+    },
+    {
+      "text": "the business name is Summit Peak Roofing LLC",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "summit peak roofing llc"
+          ],
+          "pred": [
+            "summit peak roofing llc"
+          ]
+        }
+      }
+    },
+    {
+      "text": "i already own brightwavemedia.com",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "brightwavemedia.com"
+          ],
+          "pred": [
+            "brightwavemedia.com"
+          ]
+        }
+      }
+    },
+    {
+      "text": "our startup is called Nimbus Robotics",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "nimbus robotics"
+          ],
+          "pred": [
+            "nimbus robotics"
+          ]
+        }
+      }
+    },
+    {
+      "text": "help me find a domain for The Copper Kettle Cafe",
+      "intent_gold": "ambiguous",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "the copper kettle cafe"
+          ],
+          "pred": [
+            "the copper kettle cafe"
+          ]
+        }
+      }
+    },
+    {
+      "text": "business named Redwood Financial Advisors",
+      "intent_gold": "exact",
+      "intent_pred": "exact",
+      "spans": {
+        "GIVEN_NAME": {
+          "gold": [
+            "redwood financial advisors"
+          ],
+          "pred": [
+            "redwood financial advisors"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a modern minimalist name for an architecture studio",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "architecture studio"
+          ],
+          "pred": [
+            "architecture studio"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "minimalist",
+            "modern"
+          ],
+          "pred": [
+            "minimalist",
+            "modern"
+          ]
+        }
+      }
+    },
+    {
+      "text": "something playful and quirky for a toy store",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "toy store"
+          ],
+          "pred": [
+            "toy store"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "playful",
+            "quirky"
+          ],
+          "pred": [
+            "playful",
+            "quirky"
+          ]
+        }
+      }
+    },
+    {
+      "text": "an elegant sophisticated brand for a wine bar",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "wine bar"
+          ],
+          "pred": [
+            "wine bar"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "elegant",
+            "sophisticated"
+          ],
+          "pred": [
+            "elegant"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a bold edgy name for a tattoo parlor in brooklyn",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "tattoo parlor"
+          ],
+          "pred": [
+            "tattoo parlor"
+          ]
+        },
+        "STYLE": {
+          "gold": [
+            "bold",
+            "edgy"
+          ],
+          "pred": [
+            "bold",
+            "edgy"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "brooklyn"
+          ],
+          "pred": [
+            "brooklyn"
+          ]
+        }
+      }
+    },
+    {
+      "text": "physiotherapy clinic for athletes that must include motion",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "physiotherapy clinic"
+          ],
+          "pred": [
+            "physiotherapy clinic"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "motion"
+          ],
+          "pred": []
+        },
+        "QUALIFIER": {
+          "gold": [
+            "athletes"
+          ],
+          "pred": [
+            "athletes"
+          ]
+        }
+      }
+    },
+    {
+      "text": "a vegan cafe for students avoiding the word green",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "vegan cafe"
+          ],
+          "pred": [
+            "vegan cafe"
+          ]
+        },
+        "EXCLUDE_TOKEN": {
+          "gold": [
+            "green"
+          ],
+          "pred": [
+            "green"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "students"
+          ],
+          "pred": [
+            "students"
+          ]
+        }
+      }
+    },
+    {
+      "text": "daycare in seattle with the word sprout in the name",
+      "intent_gold": "creative",
+      "intent_pred": "creative",
+      "spans": {
+        "CONCEPT": {
+          "gold": [
+            "daycare"
+          ],
+          "pred": [
+            "daycare"
+          ]
+        },
+        "REQUIRE_TOKEN": {
+          "gold": [
+            "sprout"
+          ],
+          "pred": [
+            "sprout"
+          ]
+        },
+        "QUALIFIER": {
+          "gold": [
+            "seattle"
+          ],
+          "pred": [
+            "seattle"
+          ]
+        }
+      }
+    }
+  ]
+}
