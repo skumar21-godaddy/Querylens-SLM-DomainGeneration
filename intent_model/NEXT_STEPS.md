@@ -277,6 +277,98 @@ acronyms (`VI`) with no cue are genuinely ambiguous (brand vs Roman numeral vs f
 brand for adhesives" wrongly captured whole as GIVEN_NAME). Add examples of uncommon
 acronym brand-prefixes in descriptions. Accepted limitation: bare no-cue acronyms stay imperfect.
 
+### Pattern J — user supplies SEED / EXAMPLE names; the theme words are dropped
+**Symptom:** `I want to leverage my company name RESET (currently resetdigital.co) and
+create a sub-company that markets to med spas. Suggest domains that tie back to RESET…
+RESET Growth, RESET Revenue, RESET Patient Pipeline etc`
+→ QueryLens returns `given_name:["RESET"]` (correct anchor) and `qualifiers:["med spas"]`,
+but `concept:[]`. The user's own direction — `Growth / Revenue / Patient Pipeline` — is
+**never captured**, so generation falls into the plain "spin on RESET" branch and produces
+`resethub`/`resetgo` instead of the requested `resetgrowth`/`resetrevenue`/`resetpatients`.
+
+**Root cause (schema gap, not a model bug):** the theme lives in a list of **example names
+the user seeded**, a construction QueryLens was never trained on. NER learned to pull concepts
+from *descriptions* ("a bakery for kids"), not from a user-provided candidate list. There is
+**no schema slot for seed examples**, so those words are discarded; the one concrete noun
+("med spas") is reasonably routed to QUALIFIER, leaving concept empty.
+
+**Why NOT a rule** (explicitly rejected — same trap as the generation-side rules we removed):
+users seed examples in unbounded tone/verbatim forms a regex can't enumerate, and a keyword
+rule can't tell a seed from a negation or a reference:
+- list + `etc`: "RESET Growth, RESET Revenue, RESET Patient Pipeline etc"
+- hedged, no delimiter: "maybe RESET Growth or something like RESET Revenue"
+- verbatim/quoted: `call it "RESET Growth"`
+- newline list, or buried mid-paragraph
+- NEGATIVES a rule would wrongly grab: "nothing like RESET Boring", the user's *existing*
+  brand as a reference ("currently resetdigital.co"), plain concept mentions.
+
+**Fix — LEARN it (distillation), consistent with §1b:** add a span label **`SEED_EXAMPLE`**
+(candidate names / theme words the user offered). Keep it distinct from CONCEPT so downstream
+*generation* treats seeds as **high-priority spins** (RESET + growth/revenue/patients), not just
+background concept. The model learns the *construction* from local context (quotes, `like/e.g./
+such as/etc`, capitalization, list shape) — which generalizes across tone, and makes quoted
+verbatim seeds the EASIEST case, exactly where a comma rule is weakest.
+
+**Teacher data-gen matrix (vary the surface form; seed the theme words):**
+```json
+{"text":"leverage my company RESET and market to med spas, suggest domains tied to RESET like RESET Growth, RESET Revenue, RESET Patient Pipeline","intent":"creative","spans":[{"label":"GIVEN_NAME","text":"RESET"},{"label":"SEED_EXAMPLE","text":"Growth"},{"label":"SEED_EXAMPLE","text":"Revenue"},{"label":"SEED_EXAMPLE","text":"Patient Pipeline"},{"label":"QUALIFIER","text":"med spas"}]}
+{"text":"names off our brand Kudo, maybe Kudo Labs or something like Kudo Cloud","intent":"creative","spans":[{"label":"GIVEN_NAME","text":"Kudo"},{"label":"SEED_EXAMPLE","text":"Labs"},{"label":"SEED_EXAMPLE","text":"Cloud"}]}
+{"text":"we're called Vera; I was thinking \"Vera Health\" and \"Vera Care\"","intent":"exact","spans":[{"label":"GIVEN_NAME","text":"Vera"},{"label":"SEED_EXAMPLE","text":"Health"},{"label":"SEED_EXAMPLE","text":"Care"}]}
+{"text":"domains for Nimbus e.g. NimbusPay NimbusShift NimbusFlow","intent":"creative","spans":[{"label":"GIVEN_NAME","text":"Nimbus"},{"label":"SEED_EXAMPLE","text":"Pay"},{"label":"SEED_EXAMPLE","text":"Shift"},{"label":"SEED_EXAMPLE","text":"Flow"}]}
+```
+**Hard negatives (must NOT become SEED_EXAMPLE — teach precision):**
+```json
+{"text":"a name off Reset but nothing like Reset Boring or Reset Cheap","intent":"creative","spans":[{"label":"GIVEN_NAME","text":"Reset"}]}
+{"text":"my current site is resetdigital.co, I want a fresh sub-brand for med spas","intent":"creative","spans":[{"label":"GIVEN_NAME","text":"reset"},{"label":"QUALIFIER","text":"med spas"}]}
+{"text":"a calm modern name for a yoga studio","intent":"creative","spans":[{"label":"STYLE","text":"calm"},{"label":"STYLE","text":"modern"},{"label":"CONCEPT","text":"yoga studio"}]}
+```
+
+**Generation wiring (once the label exists):** in the given-name branch, add
+`favoring the user's directions: <seeds>` so most spins combine the anchor with the seeds
+(RESET + Growth/Revenue/Patients). This closes the loop the user actually asked for.
+
+**Honest ceiling:** distinguishing a genuine seed from a negated/reference mention at
+arbitrary distance is where the ±8-token CNN caps out; local seed lists (the common case)
+are well within reach. Adversarial far-apart negation stays a documented limitation.
+Relates to §3c ("Candidate-name lists → GIVEN_NAME"): SEED_EXAMPLE refines that convention
+for the case where an *anchor* name is also present and the extras signal a theme.
+
+### Pattern K — value-proposition / outcome-verb phrases not captured as concept
+**Symptom:** `need a shorter domain name for Global experts that save hotel from loss and
+increase revenue` → concept `["hotel"]` only. The **crux of the ask** — the service itself
+(revenue recovery / loss prevention) — is dropped, so generation only sees "hotel". Minor
+side-mislabels: `Global experts` → QUALIFIER (it's closer to the concept/identity), `shorter`
+→ STYLE (really a length hint; harmless).
+
+**Root cause:** the concept is expressed as an **outcome/benefit verb phrase inside a relative
+clause** ("…that *save* hotel *from loss* and *increase revenue*"). The NER learned to pull
+concrete NOUN concepts ("hotel") but not action/outcome phrases ("increase revenue", "cut
+losses"). Same family as **Pattern B** (clause-internal concepts), with a new dimension: the
+concept is a *value proposition*, not a tangible object — and distilled data has few
+"helps/saves/increases <outcome>" → CONCEPT mappings.
+
+**Fix — TRAINING (extends Pattern B), NOT a rule.** A verb-phrase extractor rule would be as
+brittle as the seed rule in Pattern J. Add teacher-labeled examples where the **service/outcome
+is the concept**, mined from the verb clause, and the audience becomes QUALIFIER. Include the
+common "experts/agency/firm that <do X>" construction and coordinated outcomes ("save … and
+increase …"). Label spans verbatim:
+```json
+{"text":"a short domain for experts that help hotels increase revenue and cut losses","intent":"creative","spans":[{"label":"CONCEPT","text":"increase revenue"},{"label":"CONCEPT","text":"cut losses"},{"label":"QUALIFIER","text":"hotels"}]}
+{"text":"branding for a firm that helps restaurants reduce waste and boost profit","intent":"creative","spans":[{"label":"CONCEPT","text":"reduce waste"},{"label":"CONCEPT","text":"boost profit"},{"label":"QUALIFIER","text":"restaurants"}]}
+{"text":"name for a service that rescues failing gyms and grows membership","intent":"creative","spans":[{"label":"CONCEPT","text":"rescues failing gyms"},{"label":"CONCEPT","text":"grows membership"}]}
+{"text":"agency that saves clinics from no-shows and increases bookings","intent":"creative","spans":[{"label":"CONCEPT","text":"saves clinics from no-shows"},{"label":"CONCEPT","text":"increases bookings"}]}
+```
+
+**Alternate (generation-side, NOT recommended as the primary):** for short queries we could feed
+the SLM a richer/near-raw description instead of just the concept tokens, letting the model read
+"save hotel from loss and increase revenue" directly. It would paper over this case, but it
+reintroduces the exact messy-input problem we removed for long/rambling queries (the nonprofit
+paragraph), and it makes output depend on unstructured text again. Keep the SLM input clean;
+fix the extraction. (If ever adopted, gate it to short queries only and measure both ends.)
+
+**Honest ceiling:** coordinated multi-outcome clauses with typos/length are near the ±8-token
+CNN limit (cf. Pattern H); the common single "that <verb> <outcome>" case is well within reach.
+
 ## 4. Open items (separate from the relabel round)
 - **Intent override for "named/called X + request → ambiguous":** now that given-name
   extraction is reliable, MEASURE this single high-precision override on blind data
