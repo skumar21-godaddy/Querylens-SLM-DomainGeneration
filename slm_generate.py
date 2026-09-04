@@ -24,87 +24,74 @@ from constraints import _KNOWN_TLDS               # reuse QueryLens's 531-TLD co
 SLM_URL = os.environ.get("SLM_URL", "https://your-slm-endpoint.example.com/v1/chat/completions")
 MODEL_VARIANT = os.environ.get("SLM_VARIANT", "Qwen2-5-3B-Instruct")
 
-SYSTEM = """You are a brand-name generator. Do exactly what the user asks. Reply with ONLY \
-this JSON and nothing else: {"domains": ["name1.com", ... 10 names]}"""
+# The system prompt carries the QUALITY BAR (once, generically), so the per-query message
+# can stay a short, plain description. The two are designed to work together: system = how to
+# name well; user = what to name. We do NOT dictate which words must appear — the model reads
+# the description and decides, which is what keeps output varied instead of keyword-stuffed.
+SYSTEM = """You are an expert brand-name generator. You receive a short description of a \
+business or idea and return domain names for it.
 
+Make 10 names that:
+- sound like real, memorable brands — blend, shorten, or coin words. Do NOT just glue the \
+description's words together, and do NOT repeat the same word in most names.
+- are short and easy to say (aim for under 15 letters), lowercase, one word where possible.
+- capture the ONE core idea. Never copy long phrases, and never list every detail from the \
+description.
+- skip generic filler ("nonprofit", "company", "organization", "business", "official") and \
+never put sensitive or stigmatizing words in a name.
 
-_STOP = {"the", "a", "an", "for", "and", "co", "my", "our", "of", "to", "in", "with"}
-# neutral, brandable endings to fuse with the crux when the brief has few other words
-_ENDINGS = ["hub", "spot", "hq", "labs", "goods", "house", "zone", "co"]
+Reply with ONLY this JSON, nothing else: {"domains": ["name1.com", "name2.com", ... 10 total]}"""
+
+# SAFETY guard (not a creativity rule): never surface a name containing a stigmatizing word,
+# even if it appears in the query. Kept tiny and chosen to avoid substring false-positives
+# (no bare "sex" → "essex/unisex"; no "rapist" → "therapist").
+_STIGMA = {"offender", "offenders", "predator", "predators", "svp",
+           "felon", "felons", "molest", "pedophile", "incest"}
 
 
 def build_user_msg(brief: dict) -> str:
-    """Translate the structured brief into SIMPLE, concrete English — a small model
-    follows plain instructions far better than a JSON schema + abstract rules.
-    EXACT intent -> variations of the actual name; CREATIVE -> brandable names."""
+    """Turn the brief into a SHORT, plain description of what to name — not a rule list.
+    The system prompt already knows how to name well; here we only say WHAT the thing is,
+    the way a person would brief a designer. Hard constraints (tld/length/require/exclude)
+    are appended as one-liners. We deliberately do NOT tell the model which words to repeat
+    — letting it read the description is what keeps the names varied and on-idea."""
     concept = brief.get("concept") or []
     given = brief.get("given_name") or []
     c = brief.get("constraints", {})
 
-    def _tail(lst):                                   # shared closing lines
-        if c.get("tld"): lst.append(f'End every name with "{c["tld"]}".')
-        else: lst.append("At least 6 must end in .com; a couple can be .co.")
-        lst.append("Lowercase, no spaces, a dot before the ending (name.com). Reply with JSON only.")
-        return "\n".join(lst)
+    def _tail(lines):                                 # append the hard, checkable constraints
+        if c.get("tld"): lines.append(f'Every name must end in {c["tld"]}.')
+        else: lines.append("Most should end in .com; a couple can be .co.")
+        if brief.get("require_token"):
+            lines.append(f'Include the word "{brief["require_token"][0]}" in every name.')
+        if brief.get("exclude_token"):
+            lines.append(f'Never use: {", ".join(brief["exclude_token"])}.')
+        if c.get("length_max"): lines.append(f'Keep each name under {c["length_max"]} letters.')
+        if c.get("no_hyphen"): lines.append("No hyphens.")
+        if c.get("no_digits"): lines.append("No numbers.")
+        return "\n".join(lines)
 
-    # ---- NAME + CONCEPTS: crux is the name; COMBINE it with the concept words ----
+    # NAME + CONCEPTS: the name is fixed; the concepts say what it's for.
     if given and concept:
-        name = given[0]
-        ideas = ", ".join(concept[:4])
-        return _tail([
-            f'Make 10 short domain names. Every name must start with "{name}" and add one '
-            f'short real word about: {ideas}.',
-            f'For example {name}hub or {name}server. Keep them short; no random letters.'])
+        return _tail([f'The name is "{given[0]}". It is used for: {", ".join(concept[:4])}.',
+                      f'Keep "{given[0]}" in every name and pair it with one short related word.'])
 
-    # ---- EXACT / plain name: give close variations of the name ----
+    # EXACT / plain name: the business is already named; give close variations.
     name_src = given or (concept if brief.get("intent") == "exact" else [])
     if name_src:
-        name = name_src[0]
-        L = [f'A business is already named "{name}". Give 10 domain names that are close '
-             f'variations of THIS name.',
-             "Vary only by: dropping small words (the, co, and), reordering the words, "
-             "joining them, or adding a short ending like hq/online/shop. Keep the main words.",
-             "Do NOT invent new or unrelated names."]
-        if c.get("tld"):
-            L.append(f'End every name with "{c["tld"]}".')
-        else:
-            L.append("At least 6 must end in .com; a couple can be .co.")
-        L.append("Lowercase, no spaces, a dot before the ending (name.com). Reply with JSON only.")
-        return "\n".join(L)
+        return _tail([f'The business is already named "{name_src[0]}".',
+                      "Give close variations of this exact name — shorten it, reorder or join the "
+                      "words, or add a short ending. Keep the core words; don't invent new names."])
 
-    # ---- CREATIVE: brandable names from the concept ----
-    subj = ", ".join(concept) or "a business"
-    L = [f"Make 10 short, catchy domain names for {subj}."]
-    # concept-word retention (the fix for 'vegan' getting dropped)
-    words = [w for c in concept for w in c.split() if w.lower() not in _STOP and len(w) > 2]
-    if words:
-        L.append(f'The word "{words[0]}" must appear in at least 5 of the names.')
-        if len(words) > 1:
-            L.append(f'Most of the others should include "{words[1]}".')
-    style = brief.get("style") or []
-    if style:
-        L.append(f"Make them feel {', '.join(style)}, but do NOT put those words in the names.")
+    # CREATIVE: describe the idea in one line and let the model name it.
+    lines = [f"Describe: {', '.join(concept) or 'a small business'}."]
+    if brief.get("style"):
+        lines.append(f"It should feel {', '.join(brief['style'])}.")
     quals = brief.get("qualifiers") or []
     if quals:
-        L.append(f"They should appeal to {', '.join(quals)}.")
-    if brief.get("require_token"):
-        L.append(f'Every name must contain the word "{brief["require_token"][0]}".')
-    if brief.get("exclude_token"):
-        L.append(f'Never use the word(s): {", ".join(brief["exclude_token"])}.')
-    c = brief.get("constraints", {})
-    if c.get("tld"):
-        L.append(f'End every name with "{c["tld"]}".')
-    else:
-        L.append("At least 6 must end in .com; a few can be .co or .shop.")
-    if c.get("length_max"):
-        L.append(f'Keep each name under {c["length_max"]} letters.')
-    if c.get("no_hyphen"):
-        L.append("No hyphens.")
-    if c.get("no_digits"):
-        L.append("No numbers.")
-    L.append("Use whole real words, lowercase, no spaces. Write each as name.com "
-             "(always a dot before the ending). Reply with JSON only.")
-    return "\n".join(L)
+        aud = "; ".join(quals)
+        lines.append(f"It is for {aud[:80]}.")           # audience is context, not name material
+    return _tail(lines)
 
 
 def call_slm(system: str, user: str, max_tokens=500, temperature=0.3, top_p=0.8):
@@ -147,9 +134,11 @@ def parse_domains(text):
 
 
 def enforce(domains, brief):
-    """Deterministically enforce the QueryLens constraints the SLM is unreliable on:
-    valid single TLD, tld override, length, hyphen/digit, require/exclude, dedup,
-    the >=4 .com floor, and the guaranteed first-2 exact match. Nothing else."""
+    """Enforce ONLY the hard, checkable constraints the SLM is unreliable on — nothing about
+    creativity or word choice (that is the model's job, driven by the prompt):
+      exact-match first (when the user already has a name), missing-dot repair, a valid single
+      TLD (required one / sensible default), length, hyphen/digit, require/exclude, dedup,
+      and a >=6 .com floor. No forced keywords, no synthesized names."""
     import re
     c = brief.get("constraints", {})
     tld = c.get("tld")
@@ -158,10 +147,9 @@ def enforce(domains, brief):
     req = [t.lower() for t in brief.get("require_token", [])]
     no_hy, no_dig = c.get("no_hyphen"), c.get("no_digits")
 
-    # GUARANTEE the first 2 are exact-match when the user has a name (exact intent, or
-    # creative + given_name). We know the exact string, so build it deterministically.
+    # GUARANTEE the first 1-2 are the exact name when the user already has one — the one thing
+    # we know for certain and the model paraphrases away. (Not a creativity rule.)
     name_src = brief.get("given_name") or (brief.get("concept") if brief.get("intent") == "exact" else [])
-    exact = []
     if name_src:
         sld = re.sub(r"[^a-z0-9]", "", name_src[0].lower())
         if sld and (not lmax or len(sld) <= lmax):
@@ -169,29 +157,11 @@ def enforce(domains, brief):
             exact = [f"{sld}.{primary}"] + ([] if tld else [f"{sld}.co"])
             domains = exact + [d for d in domains if str(d).strip().lower().strip(".") not in exact]
 
-    # CRUX = the identity word that must survive into the names: the given name if there
-    # is one (bean), else the distinctive concept word (vegan). OTHERS = short, relevant
-    # words from the brief to fuse with it (server/dns; bakery/kids) — never random.
-    concept = brief.get("concept") or []
-    crux = re.sub(r"[^a-z0-9]", "", (name_src[0] if name_src else
-                  (concept[0].split()[0] if concept else "")).lower())
-    if crux in _STOP or len(crux) < 3:
-        crux = ""
-    others, seen_o = [], set()
-    for w in concept + (brief.get("qualifiers") or []):
-        for tok in re.sub(r"[^a-z0-9 ]", "", str(w).lower()).split():
-            if tok and tok != crux and tok not in _STOP and 3 <= len(tok) <= 8 and tok not in seen_o:
-                seen_o.add(tok); others.append(tok)
-
     out, seen = [], set()
     for d in domains:
         d = str(d).strip().lower().strip(".")
-        if "." not in d:                              # SLM dropped the dot ("vegancakesco")
-            hit = next((t for t in sorted(_KNOWN_TLDS, key=len, reverse=True)
-                        if len(t) >= 2 and d.endswith(t) and len(d) - len(t) >= 3), None)
-            if not hit:
-                continue
-            d = d[:-len(hit)] + "." + hit             # -> "vegancakes.co"
+        if "." not in d:                              # SLM often returns a bare name ("VitaGear")
+            d = d + ".com"                            # it's a brand name — add the default TLD
         label, _, ext = d.partition(".")
         ext = ext.split(".")[-1]                      # collapse any stacked TLD -> last piece
         if tld:
@@ -206,6 +176,7 @@ def enforce(domains, brief):
         if no_dig and any(ch.isdigit() for ch in label): continue
         if lmax and len(label) > lmax: continue
         if lmin and len(label) < lmin: continue
+        if any(w in label for w in _STIGMA): continue   # safety: drop stigmatizing names
         if any(t in label for t in excl): continue
         if req and not all(t.replace(" ", "") in label for t in req): continue
         if ext in excl:                              # exclude_token named a TLD
@@ -224,23 +195,6 @@ def enforce(domains, brief):
                 if cand not in seen:
                     seen.discard(out[i]); out[i] = cand; seen.add(cand); n_com += 1
             i += 1
-
-    # crux floor: guarantee the identity word appears in >=4 names. Strategic, not blind —
-    # we don't mangle the SLM's names; we replace the weakest slots with clean, brief-driven
-    # combos (beanserver/beandns/beanhub, veganbakery/vegangoods). Robust even when the SLM
-    # rambles: the crux names are synthesized here, not trusted from the model.
-    if crux and brief.get("intent") != "exact":       # exact = name + variations; no forced combos
-        ext = tld.lstrip(".") if tld else "com"
-        combos = [f"{crux}{w}.{ext}" for w in others + _ENDINGS]
-        combos = [c for c in combos if c not in seen and (not lmax or len(c.rsplit(".", 1)[0]) <= lmax)]
-        n_keep = len(exact) if name_src else 0        # never overwrite the exact-match names
-        has = lambda d: crux in d.rsplit(".", 1)[0]
-        j = len(out) - 1
-        while sum(map(has, out)) < min(4, len(out)) and combos and j >= n_keep:
-            if not has(out[j]):
-                cand = combos.pop(0)
-                seen.discard(out[j]); seen.add(cand); out[j] = cand
-            j -= 1
     return out
 
 
