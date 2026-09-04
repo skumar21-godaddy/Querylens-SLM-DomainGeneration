@@ -29,6 +29,8 @@ this JSON and nothing else: {"domains": ["name1.com", ... 10 names]}"""
 
 
 _STOP = {"the", "a", "an", "for", "and", "co", "my", "our", "of", "to", "in", "with"}
+# neutral, brandable endings to fuse with the crux when the brief has few other words
+_ENDINGS = ["hub", "spot", "hq", "labs", "goods", "house", "zone", "co"]
 
 
 def build_user_msg(brief: dict) -> str:
@@ -39,7 +41,22 @@ def build_user_msg(brief: dict) -> str:
     given = brief.get("given_name") or []
     c = brief.get("constraints", {})
 
-    # ---- EXACT: the business already has a name; give close variations of IT ----
+    def _tail(lst):                                   # shared closing lines
+        if c.get("tld"): lst.append(f'End every name with "{c["tld"]}".')
+        else: lst.append("At least 6 must end in .com; a couple can be .co.")
+        lst.append("Lowercase, no spaces, a dot before the ending (name.com). Reply with JSON only.")
+        return "\n".join(lst)
+
+    # ---- NAME + CONCEPTS: crux is the name; COMBINE it with the concept words ----
+    if given and concept:
+        name = given[0]
+        ideas = ", ".join(concept[:4])
+        return _tail([
+            f'Make 10 short domain names. Every name must start with "{name}" and add one '
+            f'short real word about: {ideas}.',
+            f'For example {name}hub or {name}server. Keep them short; no random letters.'])
+
+    # ---- EXACT / plain name: give close variations of the name ----
     name_src = given or (concept if brief.get("intent") == "exact" else [])
     if name_src:
         name = name_src[0]
@@ -61,8 +78,9 @@ def build_user_msg(brief: dict) -> str:
     # concept-word retention (the fix for 'vegan' getting dropped)
     words = [w for c in concept for w in c.split() if w.lower() not in _STOP and len(w) > 2]
     if words:
-        kw = words[0] + (f'" or "{words[1]}' if len(words) > 1 else "")
-        L.append(f'Put the word "{kw}" in most of the names so people know what it is.')
+        L.append(f'The word "{words[0]}" must appear in at least 5 of the names.')
+        if len(words) > 1:
+            L.append(f'Most of the others should include "{words[1]}".')
     style = brief.get("style") or []
     if style:
         L.append(f"Make them feel {', '.join(style)}, but do NOT put those words in the names.")
@@ -143,6 +161,7 @@ def enforce(domains, brief):
     # GUARANTEE the first 2 are exact-match when the user has a name (exact intent, or
     # creative + given_name). We know the exact string, so build it deterministically.
     name_src = brief.get("given_name") or (brief.get("concept") if brief.get("intent") == "exact" else [])
+    exact = []
     if name_src:
         sld = re.sub(r"[^a-z0-9]", "", name_src[0].lower())
         if sld and (not lmax or len(sld) <= lmax):
@@ -150,17 +169,37 @@ def enforce(domains, brief):
             exact = [f"{sld}.{primary}"] + ([] if tld else [f"{sld}.co"])
             domains = exact + [d for d in domains if str(d).strip().lower().strip(".") not in exact]
 
+    # CRUX = the identity word that must survive into the names: the given name if there
+    # is one (bean), else the distinctive concept word (vegan). OTHERS = short, relevant
+    # words from the brief to fuse with it (server/dns; bakery/kids) — never random.
+    concept = brief.get("concept") or []
+    crux = re.sub(r"[^a-z0-9]", "", (name_src[0] if name_src else
+                  (concept[0].split()[0] if concept else "")).lower())
+    if crux in _STOP or len(crux) < 3:
+        crux = ""
+    others, seen_o = [], set()
+    for w in concept + (brief.get("qualifiers") or []):
+        for tok in re.sub(r"[^a-z0-9 ]", "", str(w).lower()).split():
+            if tok and tok != crux and tok not in _STOP and 3 <= len(tok) <= 8 and tok not in seen_o:
+                seen_o.add(tok); others.append(tok)
+
     out, seen = [], set()
     for d in domains:
         d = str(d).strip().lower().strip(".")
-        if "." not in d:
-            continue
+        if "." not in d:                              # SLM dropped the dot ("vegancakesco")
+            hit = next((t for t in sorted(_KNOWN_TLDS, key=len, reverse=True)
+                        if len(t) >= 2 and d.endswith(t) and len(d) - len(t) >= 3), None)
+            if not hit:
+                continue
+            d = d[:-len(hit)] + "." + hit             # -> "vegancakes.co"
         label, _, ext = d.partition(".")
         ext = ext.split(".")[-1]                      # collapse any stacked TLD -> last piece
         if tld:
             ext = tld.lstrip(".")                     # force required TLD
         elif ext not in _KNOWN_TLDS:                  # SLM merged junk (funcom) -> real TLD
             ext = "com"
+        elif not name_src and ext not in ("com", "co", "shop", "store"):
+            ext = "co"                                # creative: keep TLDs sensible (no .name/.tech)
         if not re.fullmatch(r"[a-z0-9-]+", label) or len(label) < 3:
             continue                                   # drop junk fragments like "co"
         if no_hy and "-" in label: continue
@@ -185,6 +224,23 @@ def enforce(domains, brief):
                 if cand not in seen:
                     seen.discard(out[i]); out[i] = cand; seen.add(cand); n_com += 1
             i += 1
+
+    # crux floor: guarantee the identity word appears in >=4 names. Strategic, not blind —
+    # we don't mangle the SLM's names; we replace the weakest slots with clean, brief-driven
+    # combos (beanserver/beandns/beanhub, veganbakery/vegangoods). Robust even when the SLM
+    # rambles: the crux names are synthesized here, not trusted from the model.
+    if crux and brief.get("intent") != "exact":       # exact = name + variations; no forced combos
+        ext = tld.lstrip(".") if tld else "com"
+        combos = [f"{crux}{w}.{ext}" for w in others + _ENDINGS]
+        combos = [c for c in combos if c not in seen and (not lmax or len(c.rsplit(".", 1)[0]) <= lmax)]
+        n_keep = len(exact) if name_src else 0        # never overwrite the exact-match names
+        has = lambda d: crux in d.rsplit(".", 1)[0]
+        j = len(out) - 1
+        while sum(map(has, out)) < min(4, len(out)) and combos and j >= n_keep:
+            if not has(out[j]):
+                cand = combos.pop(0)
+                seen.discard(out[j]); seen.add(cand); out[j] = cand
+            j -= 1
     return out
 
 
