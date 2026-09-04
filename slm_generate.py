@@ -21,36 +21,77 @@ sys.path.insert(0, os.path.join(HERE, "intent_layer"))
 import hybrid
 from constraints import _KNOWN_TLDS               # reuse QueryLens's 531-TLD corpus
 
-# SLM chat-completions endpoint — set to your own via env SLM_URL (default is a placeholder).
 SLM_URL = os.environ.get("SLM_URL", "https://your-slm-endpoint.example.com/v1/chat/completions")
 MODEL_VARIANT = os.environ.get("SLM_VARIANT", "Qwen2-5-3B-Instruct")
 
-SYSTEM = """You turn a domain BRIEF into brandable domain names. Output ONLY strict JSON: {"domains":[10 strings]}. Nothing else.
+SYSTEM = """You are a brand-name generator. Do exactly what the user asks. Reply with ONLY \
+this JSON and nothing else: {"domains": ["name1.com", ... 10 names]}"""
 
-Brief: concept, style, given_name, qualifiers, require_token, exclude_token, constraints{tld,length_max,length_min,no_hyphen,no_digits,position}.
 
-Rules:
-1. Exactly 10 distinct names. Each = label + ONE real TLD (name.com). lowercase, no spaces, one dot only.
-2. Build every name AROUND the concept so the brand is obvious. Keep the main concept word (or a close real synonym) READABLE in most names — use WHOLE real words; do NOT drop letters or merge words into unpronounceable fragments (a buyer must recognise the concept). Pair the concept word with ONE more real, evocative word or a short suffix (-ly, -hub, -co, -ery). Keep names short and real-sounding. style = tone; qualifier = light flavor.
-3. Safe and clean only — no offensive, adult, or disturbing meaning.
-4. TLDs: at least 4 end in .com; for the rest use .co, .shop, or .store (or another TLD that clearly fits the concept). Do NOT use .io/.ai/.tech/.app unless the concept is software or tech. TLDs are suffixes only — never put these words inside the name.
-5. If constraints.tld is set: every domain uses that TLD (ignore rule 4).
-6. require_token in every label; exclude_token in none; no_hyphen; no_digits; length within length_max/length_min; position start/end.
-
-JSON only, 10 items."""
+_STOP = {"the", "a", "an", "for", "and", "co", "my", "our", "of", "to", "in", "with"}
 
 
 def build_user_msg(brief: dict) -> str:
-    keep = {k: brief[k] for k in
-            ("intent", "concept", "style", "given_name", "qualifiers",
-             "require_token", "exclude_token", "constraints") if k in brief}
-    return ("Structured brief:\n" + json.dumps(keep, ensure_ascii=False) +
-            "\n\nGenerate exactly 10 domain recommendations. JSON only.")
+    """Translate the structured brief into SIMPLE, concrete English — a small model
+    follows plain instructions far better than a JSON schema + abstract rules.
+    EXACT intent -> variations of the actual name; CREATIVE -> brandable names."""
+    concept = brief.get("concept") or []
+    given = brief.get("given_name") or []
+    c = brief.get("constraints", {})
+
+    # ---- EXACT: the business already has a name; give close variations of IT ----
+    name_src = given or (concept if brief.get("intent") == "exact" else [])
+    if name_src:
+        name = name_src[0]
+        L = [f'A business is already named "{name}". Give 10 domain names that are close '
+             f'variations of THIS name.',
+             "Vary only by: dropping small words (the, co, and), reordering the words, "
+             "joining them, or adding a short ending like hq/online/shop. Keep the main words.",
+             "Do NOT invent new or unrelated names."]
+        if c.get("tld"):
+            L.append(f'End every name with "{c["tld"]}".')
+        else:
+            L.append("At least 6 must end in .com; a couple can be .co.")
+        L.append("Lowercase, no spaces, a dot before the ending (name.com). Reply with JSON only.")
+        return "\n".join(L)
+
+    # ---- CREATIVE: brandable names from the concept ----
+    subj = ", ".join(concept) or "a business"
+    L = [f"Make 10 short, catchy domain names for {subj}."]
+    # concept-word retention (the fix for 'vegan' getting dropped)
+    words = [w for c in concept for w in c.split() if w.lower() not in _STOP and len(w) > 2]
+    if words:
+        kw = words[0] + (f'" or "{words[1]}' if len(words) > 1 else "")
+        L.append(f'Put the word "{kw}" in most of the names so people know what it is.')
+    style = brief.get("style") or []
+    if style:
+        L.append(f"Make them feel {', '.join(style)}, but do NOT put those words in the names.")
+    quals = brief.get("qualifiers") or []
+    if quals:
+        L.append(f"They should appeal to {', '.join(quals)}.")
+    if brief.get("require_token"):
+        L.append(f'Every name must contain the word "{brief["require_token"][0]}".')
+    if brief.get("exclude_token"):
+        L.append(f'Never use the word(s): {", ".join(brief["exclude_token"])}.')
+    c = brief.get("constraints", {})
+    if c.get("tld"):
+        L.append(f'End every name with "{c["tld"]}".')
+    else:
+        L.append("At least 6 must end in .com; a few can be .co or .shop.")
+    if c.get("length_max"):
+        L.append(f'Keep each name under {c["length_max"]} letters.')
+    if c.get("no_hyphen"):
+        L.append("No hyphens.")
+    if c.get("no_digits"):
+        L.append("No numbers.")
+    L.append("Use whole real words, lowercase, no spaces. Write each as name.com "
+             "(always a dot before the ending). Reply with JSON only.")
+    return "\n".join(L)
 
 
-def call_slm(system: str, user: str, max_tokens=500, temperature=0.5, top_p=0.85):
-    # lower temp + top_p keep the small model on coherent tokens (whole words, less
-    # gibberish); kept mild so the 10 names still vary. Tune via env if needed.
+def call_slm(system: str, user: str, max_tokens=500, temperature=0.3, top_p=0.8):
+    # temp 0.3 / top_p 0.8 measured best: highest concept-word retention + cleanest,
+    # most on-topic names. Higher values add randomness and off-concept drift. Env-tunable.
     temperature = float(os.environ.get("SLM_TEMP", temperature))
     top_p = float(os.environ.get("SLM_TOP_P", top_p))
     payload = {"model": "/models", "max_tokens": max_tokens, "temperature": temperature,
@@ -70,6 +111,21 @@ def call_slm(system: str, user: str, max_tokens=500, temperature=0.5, top_p=0.85
             body = json.loads(r.read())
     dt = time.perf_counter() - t
     return body["choices"][0]["message"]["content"], dt
+
+
+def parse_domains(text):
+    """Extract the domain list from the SLM reply — tolerant of malformed JSON
+    (small models sometimes close with ')' or drop brackets). Falls back to a regex
+    that pulls domain-like tokens, so a bad delimiter never loses the whole result."""
+    import json, re
+    try:
+        m = text[text.index("{"): text.rindex("}") + 1]
+        d = json.loads(m).get("domains")
+        if d:
+            return d
+    except Exception:
+        pass
+    return re.findall(r'[a-z0-9][a-z0-9-]*\.[a-z]{2,10}\b', text.lower())
 
 
 def enforce(domains, brief):
@@ -105,8 +161,8 @@ def enforce(domains, brief):
             ext = tld.lstrip(".")                     # force required TLD
         elif ext not in _KNOWN_TLDS:                  # SLM merged junk (funcom) -> real TLD
             ext = "com"
-        if not re.fullmatch(r"[a-z0-9-]+", label) or not label:
-            continue
+        if not re.fullmatch(r"[a-z0-9-]+", label) or len(label) < 3:
+            continue                                   # drop junk fragments like "co"
         if no_hy and "-" in label: continue
         if no_dig and any(ch.isdigit() for ch in label): continue
         if lmax and len(label) > lmax: continue
@@ -119,11 +175,11 @@ def enforce(domains, brief):
         if dom not in seen:
             seen.add(dom); out.append(dom)
     out = out[:10]
-    # .com floor: ensure >=4 .com unless a specific TLD is required or .com is excluded
+    # .com floor: ensure >=6 .com unless a specific TLD is required or .com is excluded
     if not tld and "com" not in excl:
         n_com = sum(1 for d in out if d.endswith(".com"))
         i = 0
-        while n_com < 4 and i < len(out):
+        while n_com < 6 and i < len(out):
             if not out[i].endswith(".com"):
                 cand = out[i].rsplit(".", 1)[0] + ".com"
                 if cand not in seen:
@@ -149,11 +205,7 @@ def recommend(query: str, dry: bool = False):
     except Exception as e:
         print(f"  [SLM call failed: {e}]")
         return
-    try:
-        m = out[out.index("{"): out.rindex("}") + 1]
-        raw = json.loads(m).get("domains", [])
-    except Exception:
-        print(f"SLM ({dt:.2f}s) — unparseable:", out.strip()[:400]); return
+    raw = parse_domains(out)
     final = enforce(raw, brief)
     print(f"SLM ({dt:.2f}s) -> {len(raw)} raw, {len(final)} valid after constraint enforcement:")
     for i, d in enumerate(final, 1):
